@@ -2,7 +2,6 @@ using InventoryManagement.Api.Domain;
 using InventoryManagement.Api.Models;
 using InventoryManagement.Api.Services;
 using Microsoft.EntityFrameworkCore;
-using NSubstitute.ReceivedExtensions;
 
 namespace InventoryManagement.Tests.UnitTests;
 

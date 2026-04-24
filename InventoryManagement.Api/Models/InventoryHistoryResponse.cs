@@ -7,5 +7,3 @@ public sealed record InventoryEntry(
     string Reason,
     DateTimeOffset RecordedAt
 );
-
-public sealed record InventoryHistoryResponse(List<InventoryEntry> InventoryEntries);

@@ -5,7 +5,8 @@ namespace InventoryManagement.Api.Services;
 
 public interface IProductService
 {
-    Task<ApiResponse<List<ProductResponse>>> GetAllProductsAsync(
+    Task<ApiResponse<PagedResponse<ProductResponse>>> GetAllProductsAsync(
+        PagedRequest request,
         CancellationToken cancellationToken
     );
 
@@ -33,8 +34,9 @@ public interface IProductService
         CancellationToken cancellationToken
     );
 
-    Task<ApiResponse<InventoryHistoryResponse>> GetProductInventoryHistoryAsync(
+    Task<ApiResponse<PagedResponse<InventoryEntry>>> GetProductInventoryHistoryAsync(
         Guid productId,
+        PagedRequest request,
         CancellationToken cancellationToken
     );
 }

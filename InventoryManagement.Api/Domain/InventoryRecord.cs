@@ -4,7 +4,7 @@ public class InventoryRecord
 {
     public Guid Id { get; private init; }
     public Guid ProductId { get; private init; }
-    public Product Product { get; private set; } = null!;
+    public Product? Product { get; set; }
     public int QuantityChanged { get; private init; }
     public string Reason { get; private set; } = string.Empty;
     public DateTimeOffset RecordedAt { get; private init; }

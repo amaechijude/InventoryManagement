@@ -9,12 +9,13 @@ namespace InventoryManagement.Api.Controllers;
 [Route("api/products")]
 public class ProductsController(IProductService productService) : ControllerBase
 {
-    private readonly IProductService _productService = productService;
-
     [HttpGet]
-    public async Task<IActionResult> GetAllProductsAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAllProductsAsync(
+        [AsParameters] PagedRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        var response = await _productService.GetAllProductsAsync(cancellationToken);
+        var response = await productService.GetAllProductsAsync(request, cancellationToken);
         return response.ToControllerResponse(HttpContext);
     }
 
@@ -24,7 +25,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var response = await _productService.GetProductByIdAsync(id, cancellationToken);
+        var response = await productService.GetProductByIdAsync(id, cancellationToken);
         return response.ToControllerResponse(HttpContext);
     }
 
@@ -34,7 +35,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var response = await _productService.CreateproductAsync(request, cancellationToken);
+        var response = await productService.CreateproductAsync(request, cancellationToken);
         return response.ToControllerResponse(HttpContext);
     }
 
@@ -45,7 +46,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var response = await _productService.UpdateproductAsync(id, request, cancellationToken);
+        var response = await productService.UpdateproductAsync(id, request, cancellationToken);
         return response.ToControllerResponse(HttpContext);
     }
 
@@ -55,7 +56,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var response = await _productService.DeleteProductAsync(id, cancellationToken);
+        var response = await productService.DeleteProductAsync(id, cancellationToken);
         return response.ToControllerResponse(HttpContext);
     }
 
@@ -66,18 +67,20 @@ public class ProductsController(IProductService productService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var response = await _productService.CreateInventoryAsync(id, request, cancellationToken);
+        var response = await productService.CreateInventoryAsync(id, request, cancellationToken);
         return response.ToControllerResponse(HttpContext);
     }
 
     [HttpGet("{productId:guid}/stock/history")]
     public async Task<IActionResult> GetProductInventoryHistoryAsync(
         [FromRoute] Guid productId,
+        [AsParameters] PagedRequest request,
         CancellationToken cancellationToken
     )
     {
-        var response = await _productService.GetProductInventoryHistoryAsync(
+        var response = await productService.GetProductInventoryHistoryAsync(
             productId,
+            request,
             cancellationToken
         );
         return response.ToControllerResponse(HttpContext);

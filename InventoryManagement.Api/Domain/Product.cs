@@ -9,11 +9,9 @@ public class Product
     public string Name { get; private set; } = string.Empty;
     public string SKU { get; private set; } = string.Empty;
 
-    [Range(1, double.MaxValue)]
-    public decimal Price { get; private set; }
+    [Range(1, double.MaxValue)] public decimal Price { get; private set; }
 
-    [Range(0, int.MaxValue)]
-    public int StockLevel { get; private set; }
+    [Range(0, int.MaxValue)] public int StockLevel { get; private set; }
     public bool IsDeleted { get; private set; }
     public DateTimeOffset CreatedAt { get; private init; }
     public ICollection<InventoryRecord> InventoryRecords { get; private set; } = [];
@@ -45,6 +43,8 @@ public class Product
         if (!string.IsNullOrWhiteSpace(name) && name.Length is >= 3 and < 100)
             Name = name;
     }
+
+    public void Delete() => IsDeleted = true;
 
     public void UpdateStockLevel(int newStockLevel)
     {

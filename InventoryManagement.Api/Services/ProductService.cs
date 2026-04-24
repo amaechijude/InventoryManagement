@@ -7,20 +7,34 @@ namespace InventoryManagement.Api.Services;
 
 public class ProductService(InventoryDbContext dbContext) : IProductService
 {
-    private readonly InventoryDbContext _dbContext = dbContext;
+    private const int MaxPageSize = 100;
+    private const int MinPageNumber = 1;
 
-    public async Task<ApiResponse<List<ProductResponse>>> GetAllProductsAsync(
+    public async Task<ApiResponse<PagedResponse<ProductResponse>>> GetAllProductsAsync(
+        PagedRequest request,
         CancellationToken cancellationToken
     )
     {
-        var products = await _dbContext
-            .Products.AsNoTracking()
+        var (pageNumber, pageSize) = GetPageParams(request);
+
+        IQueryable<Product> query = dbContext.Products.AsNoTracking();
+
+        var totalProduct = await query.CountAsync(cancellationToken);
+
+        var products = await query
+            .OrderByDescending(p => p.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Select(p => new ProductResponse(p.Id, p.Name, p.SKU, p.Price, p.StockLevel))
             .ToListAsync(cancellationToken);
 
-        products ??= [];
-
-        return ApiResponse<List<ProductResponse>>.Success(products);
+        var response = new PagedResponse<ProductResponse>(
+            products,
+            pageNumber,
+            pageSize,
+            totalProduct
+        );
+        return ApiResponse<PagedResponse<ProductResponse>>.Success(response);
     }
 
     public async Task<ApiResponse<ProductResponse>> GetProductByIdAsync(
@@ -28,7 +42,7 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         CancellationToken cancellationToken
     )
     {
-        var product = await _dbContext
+        var product = await dbContext
             .Products.AsNoTracking()
             .Where(p => p.Id == id)
             .Select(p => new ProductResponse(p.Id, p.Name, p.SKU, p.Price, p.StockLevel))
@@ -44,13 +58,13 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         CancellationToken cancellationToken
     )
     {
-        var Validator = new CreateProductValidator();
+        var validator = new CreateProductValidator();
 
-        var validationResult = await Validator.ValidateAsync(request, cancellationToken);
+        var validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return ApiResponse<ProductResponse>.ValidationError(validationResult.Errors);
 
-        var existingProduct = await _dbContext.Products.AnyAsync(
+        var existingProduct = await dbContext.Products.AnyAsync(
             p => p.Name == request.Name,
             cancellationToken
         );
@@ -59,8 +73,8 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
             return ApiResponse<ProductResponse>.Conflict("Product with name alredy exists");
 
         var newProduct = Product.Create(request);
-        _dbContext.Products.Add(newProduct);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.Products.Add(newProduct);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<ProductResponse>.Success(
             new ProductResponse(
@@ -79,13 +93,13 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         CancellationToken cancellationToken
     )
     {
-        var Validator = new UpdateProductRequestValidator();
+        var validator = new UpdateProductRequestValidator();
 
-        var validationResult = await Validator.ValidateAsync(request, cancellationToken);
+        var validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return ApiResponse<ProductResponse>.ValidationError(validationResult.Errors);
 
-        var product = await _dbContext.Products.FindAsync(
+        var product = await dbContext.Products.FindAsync(
             [productId],
             cancellationToken: cancellationToken
         );
@@ -94,7 +108,7 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
             return ApiResponse<ProductResponse>.NotFound("Product not found");
 
         product.Updateproduct(request.Name, request.Price);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<ProductResponse>.Success(
             new ProductResponse(
@@ -112,12 +126,13 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         CancellationToken cancellationToken
     )
     {
-        await _dbContext
-            .Products.Where(p => p.Id == id)
-            .ExecuteUpdateAsync(
-                s => s.SetProperty(p => p.IsDeleted, true),
-                cancellationToken: cancellationToken
-            );
+        var product = await dbContext.Products.FindAsync([id], cancellationToken);
+        if (product is null)
+            return ApiResponse<int>.NoContent();
+
+        product.Delete();
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         return ApiResponse<int>.NoContent();
     }
 
@@ -133,7 +148,7 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         if (!validationResult.IsValid)
             return ApiResponse<CreateInventoryResponse>.ValidationError(validationResult.Errors);
 
-        var product = await _dbContext.Products.FindAsync([productId], cancellationToken);
+        var product = await dbContext.Products.FindAsync([productId], cancellationToken);
 
         if (product is null)
             return ApiResponse<CreateInventoryResponse>.NotFound(
@@ -152,22 +167,28 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
             request.Reason
         );
 
-        _dbContext.InventoryRecords.Add(newInventory);
+        dbContext.InventoryRecords.Add(newInventory);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<CreateInventoryResponse>.Success(
             new CreateInventoryResponse(productId, request.QuantityChanged)
         );
     }
 
-    public async Task<ApiResponse<InventoryHistoryResponse>> GetProductInventoryHistoryAsync(
+    public async Task<ApiResponse<PagedResponse<InventoryEntry>>> GetProductInventoryHistoryAsync(
         Guid productId,
+        PagedRequest request,
         CancellationToken cancellationToken
     )
     {
-        var entries = await _dbContext
-            .InventoryRecords.AsNoTracking()
+        var (pageNumber, pageSize) = GetPageParams(request);
+
+        var query = dbContext.InventoryRecords.AsNoTracking();
+
+        var totalHistory = await query.CountAsync(cancellationToken);
+
+        var entries = await query
             .Where(r => r.ProductId == productId)
             .Select(s => new InventoryEntry(
                 s.Id,
@@ -178,7 +199,20 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
             ))
             .ToListAsync(cancellationToken);
 
-        entries ??= [];
-        return ApiResponse<InventoryHistoryResponse>.Success(new InventoryHistoryResponse(entries));
+        var response = new PagedResponse<InventoryEntry>(
+            entries,
+            pageNumber,
+            pageSize,
+            totalHistory
+        );
+        return ApiResponse<PagedResponse<InventoryEntry>>.Success(response);
+    }
+
+    private static (int pageNumber, int pageSize) GetPageParams(PagedRequest request)
+    {
+        var pageNumber = Math.Max(MinPageNumber, request.PageNumber);
+        var pageSize = Math.Min(MaxPageSize, request.PageSize);
+
+        return (pageNumber, pageSize);
     }
 }
