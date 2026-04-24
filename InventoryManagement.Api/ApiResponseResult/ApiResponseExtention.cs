@@ -19,12 +19,12 @@ public static class ApiResponseExtention
         return new ObjectResult(problemDetails) { StatusCode = statusCode };
     }
 
-    private static (ProblemDetails, int) CreateProblemDetailsResponse(
+    private static (ProblemDetails problemDetails, int statusCode) CreateProblemDetailsResponse(
         ApiError error,
         HttpContext httpContext
     )
     {
-        var problemDetails = new ProblemDetails
+        var problemDetails = new ProblemDetails()
         {
             Title = error.Code,
             Detail = error.Message,

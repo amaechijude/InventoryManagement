@@ -1,0 +1,8 @@
+services:
+  inventorymanagement_api:
+    image: inventorymanagementapi
+    build:
+      context: .
+      dockerfile: InventoryManagement.Api/Dockerfile
+    ports:
+      - "8080:8080"

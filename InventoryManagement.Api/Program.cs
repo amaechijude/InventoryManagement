@@ -36,5 +36,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/", () => new { Message = "Healthy", Timestamp = DateTimeOffset.UtcNow.ToString("F") });
 
 app.Run();

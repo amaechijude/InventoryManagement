@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["InventoryManagement/InventoryManagement.csproj", "InventoryManagement/"]
-RUN dotnet restore "./InventoryManagement/InventoryManagement.csproj"
+COPY ["InventoryManagement.Api/InventoryManagement.Api.csproj", "InventoryManagement.Api/"]
+RUN dotnet restore "./InventoryManagement.Api/InventoryManagement.Api.csproj"
 COPY . .
-WORKDIR "/src/InventoryManagement"
-RUN dotnet build "./InventoryManagement.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/InventoryManagement.Api"
+RUN dotnet build "./InventoryManagement.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./InventoryManagement.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./InventoryManagement.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "InventoryManagement.dll"]
+ENTRYPOINT ["dotnet", "InventoryManagement.Api.dll"]

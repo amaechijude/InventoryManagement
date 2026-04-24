@@ -1,6 +1,4 @@
 using FluentValidation.Results;
-using InventoryManagement.Api.Models;
-using Microsoft.AspNetCore.Authentication;
 
 namespace InventoryManagement.Api.ApiResponseResult;
 

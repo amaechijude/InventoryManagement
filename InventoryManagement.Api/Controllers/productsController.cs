@@ -11,7 +11,7 @@ public class ProductsController(IProductService productService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllProductsAsync(
-        [AsParameters] PagedRequest request,
+        [FromQuery] PagedRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -74,7 +74,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     [HttpGet("{productId:guid}/stock/history")]
     public async Task<IActionResult> GetProductInventoryHistoryAsync(
         [FromRoute] Guid productId,
-        [AsParameters] PagedRequest request,
+        [FromQuery] PagedRequest request,
         CancellationToken cancellationToken
     )
     {
