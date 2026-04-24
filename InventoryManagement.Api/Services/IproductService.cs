@@ -9,7 +9,7 @@ public interface IProductService
         CancellationToken cancellationToken
     );
 
-    Task<ApiResponse<ProductResponse>> GetProductAsync(
+    Task<ApiResponse<ProductResponse>> GetProductByIdAsync(
         Guid id,
         CancellationToken cancellationToken
     );
@@ -30,6 +30,11 @@ public interface IProductService
     Task<ApiResponse<CreateInventoryResponse>> CreateInventoryAsync(
         Guid productId,
         CreateInventoryRequest request,
+        CancellationToken cancellationToken
+    );
+
+    Task<ApiResponse<InventoryHistoryResponse>> GetProductInventoryHistoryAsync(
+        Guid productId,
         CancellationToken cancellationToken
     );
 }

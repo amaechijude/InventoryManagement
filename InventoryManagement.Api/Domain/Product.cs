@@ -18,7 +18,7 @@ public class Product
     public DateTimeOffset CreatedAt { get; private init; }
     public ICollection<InventoryRecord> InventoryRecords { get; private set; } = [];
 
-    internal static Product Create(Models.CreateProductRequest request)
+    public static Product Create(Models.CreateProductRequest request)
     {
         if (request.Price <= 0)
             throw new InvalidProductPriceException("Product price cannot be zero or negative");
@@ -55,7 +55,7 @@ public class Product
 
     private static string GenerateSku(string name)
     {
-        var suffix = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % 100000;
-        return $"{name[..4]}-{suffix}-{Guid.CreateVersion7()}"[..60];
+        var suffix = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        return $"{name.ToUpperInvariant()}-{suffix}";
     }
 }

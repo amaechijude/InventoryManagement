@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using InventoryManagement.Api.ApiResponseResult;
 using InventoryManagement.Api.Domain;
 using InventoryManagement.Api.Models;
@@ -24,7 +23,7 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         return ApiResponse<List<ProductResponse>>.Success(products);
     }
 
-    public async Task<ApiResponse<ProductResponse>> GetProductAsync(
+    public async Task<ApiResponse<ProductResponse>> GetProductByIdAsync(
         Guid id,
         CancellationToken cancellationToken
     )
@@ -160,5 +159,26 @@ public class ProductService(InventoryDbContext dbContext) : IProductService
         return ApiResponse<CreateInventoryResponse>.Success(
             new CreateInventoryResponse(productId, request.QuantityChanged)
         );
+    }
+
+    public async Task<ApiResponse<InventoryHistoryResponse>> GetProductInventoryHistoryAsync(
+        Guid productId,
+        CancellationToken cancellationToken
+    )
+    {
+        var entries = await _dbContext
+            .InventoryRecords.AsNoTracking()
+            .Where(r => r.ProductId == productId)
+            .Select(s => new InventoryEntry(
+                s.Id,
+                s.ProductId,
+                s.QuantityChanged,
+                s.Reason,
+                s.RecordedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        entries ??= [];
+        return ApiResponse<InventoryHistoryResponse>.Success(new InventoryHistoryResponse(entries));
     }
 }
