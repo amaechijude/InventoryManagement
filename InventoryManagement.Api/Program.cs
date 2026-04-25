@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<InventoryDbContext>(options =>
-    options.UseSqlite("Data Source=app.db")
+    options.UseSqlite("Data Source=Sqlite/app.db")
 );
 
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -23,12 +23,30 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Apply migrations
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<InventoryDbContext>();
+        // Wait for the database to be ready and apply migrations
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();

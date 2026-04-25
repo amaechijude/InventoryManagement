@@ -1,16 +1,13 @@
-
 services:
   inventorymanagement_api:
     image: inventorymanagementapi
     build:
       context: .
       dockerfile: InventoryManagement.Api/Dockerfile
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "8080:8080"
     volumes:
-      - sqlite-data:/app/Sqlite
+      - sqlite-data:/InventoryManagement.Api/Sqlite
 
 volumes:
   sqlite-data:

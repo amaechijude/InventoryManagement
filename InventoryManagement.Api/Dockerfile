@@ -27,4 +27,10 @@ RUN dotnet publish "./InventoryManagement.Api.csproj" -c $BUILD_CONFIGURATION -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Create the Sqlite directory and set permissions for the non-root user
+USER root
+RUN mkdir -p /app/Sqlite && chown -R $APP_UID:$APP_UID /app/Sqlite
+USER $APP_UID
+
 ENTRYPOINT ["dotnet", "InventoryManagement.Api.dll"]
