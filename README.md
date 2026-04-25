@@ -12,6 +12,12 @@ A modern .NET 10 API for managing product inventory, containerized with Docker a
 
 ## How to Run Locally
 
+### 0. Clone the repository
+
+```bash
+git clone https://github.com/amaechijude/InventoryManagement
+```
+
 ### 1. Using Docker (Recommended)
 
 The easiest way to run the application is using Docker Compose, which handles the database setup and volume persistence automatically.
@@ -48,3 +54,8 @@ _Note: Ensure the `Sqlite` directory exists in the project root if running local
 - **Named Volumes**: Docker named volumes (`sqlite-data`) are used to ensure the database survives container restarts and rebuilds.
 - **Scalar for Docs**: Replaced Swagger with Scalar for a more modern and responsive API documentation experience.
 - **Automatic Migrations**: The application automatically applies EF Core migrations on startup to ensure the schema is always up to date.
+- **Result Pattern**: Used result pattern for cleaner error handling and code.
+- **Problem Details**: Standardized Problem Details implementation for consistent error responses.
+- **Global Exception Handling**: Centralized exception handling for consistent error handling across the API.
+- **Non-root user**: The application runs as a non-root user in Docker for enhanced security.
+- **Layered Architecture** : The application is built with a layered architecture for better separation of concerns.
