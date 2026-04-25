@@ -33,6 +33,12 @@ If you have the .NET 10 SDK installed, you can run the API directly.
 dotnet run --project InventoryManagement.Api/InventoryManagement.Api.csproj
 ```
 
+Or test
+
+```bash
+dotnet test
+```
+
 _Note: Ensure the `Sqlite` directory exists in the project root if running locally for the first time._
 
 ## Assumptions and Design Decisions
